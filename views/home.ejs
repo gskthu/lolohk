@@ -1,0 +1,13 @@
+<html>
+
+<body>
+
+    <H2>Bookings (<%= docs.length %>)</H2>
+    <% for (var doc of docs) { %>  
+        <li>Booking ID: <a href="/details?_id=<%=doc._id%>"><%=doc.bookingid%></a></li>  
+    <% } %>   
+<br>
+<a href='/logout'>Logout</a>
+</body>
+
+</html>
