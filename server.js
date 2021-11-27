@@ -33,8 +33,6 @@ const bookingSchema = mongoose.Schema({
 		coord: String
 	},
 	manager: { type: String, required: true }
-}, {
-	versionKey: false // don't need version_key
 });
 
 
