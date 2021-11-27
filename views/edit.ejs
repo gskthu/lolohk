@@ -2,18 +2,22 @@
 
 <body>
     <form action="/update" method="POST" enctype="multipart/form-data">
-        inventory_ID: <input name="inventory_ID" value=<%=docs.inventory_ID%> /><br>
-        name: <input name="name" value=<%=docs.name%> /><br>
-        type: <input name="type" value=<%=docs.type%> /><br>
-        quantity: <input name="quantity" value=<%=docs.quantity%> /><br>
-        photoMimetype: <input name="photoMimetype" value=<%=docs.photoMimetype%> /><br>
-        street: <input name="street" value=<%=docs.inventory_address.street%> /><br>
-        building: <input name="building" value=<%=docs.inventory_address.building%> /><br>
-        country: <input name="country" value=<%=docs.inventory_address.country%> /><br>
-        zipcode: <input name="zipcode" value=<%=docs.inventory_address.zipcode%> /><br>
+        inventory_ID: <input name="inventory_ID" value=<%=docs.inventory_ID%> ><br>
+        name: <input name="name" value=<%=docs.name%> ><br>
+        type: <input name="type" value=<%=docs.type%> ><br>
+        quantity: <input name="quantity" value=<%=docs.quantity%> ><br>
+        photoMimetype: <input name="photoMimetype" value=<%=docs.photoMimetype%> ><br>
+        street: <input name="street" value=<%=docs.inventory_address.street%> ><br>
+        building: <input name="building" value=<%=docs.inventory_address.building%> ><br>
+        country: <input name="country" value=<%=docs.inventory_address.country%> ><br>
+        zipcode: <input name="zipcode" value=<%=docs.inventory_address.zipcode%> ><br>
+        <% if (s!=null && s!='') { %>
         latitude:: <input name="latitude" value=<%=s[0]%> /><br>
         longitude:: <input name="longitude" value=<%=s[1]%> /><br>
-        
+        <% } else{%>
+            latitude:: <input name="latitude" /><br>
+            longitude:: <input name="longitude" /><br>
+        <% }%>
         <input type="file" name="file"><br>
         <input type="hidden" name="_id" value=<%=docs._id%>>
         <input type="submit" value="update">
