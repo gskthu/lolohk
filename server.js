@@ -144,7 +144,7 @@ app.post('/update', (req, res) => {
 		if (req.files != null && req.files.file != null) {
 			var file = req.files.file
 			file.mv('./images/' + file.name);
-			req.body.fileName = "http://localhost:8099/" + file.name
+			req.body.fileName = req.protocol + '://' + req.get('host') + "/" + file.name
 		}
 		handle_Update(res, req)
 	}
