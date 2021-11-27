@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+    <link rel="stylesheet" href="https://npmcdn.com/leaflet@0.7.7/dist/leaflet.css" />
+<body>
+    <div id="mapid" style="width: 900px; height: 580px; position: relative;"></div>
+    <script src="https://npmcdn.com/leaflet@0.7.7/dist/leaflet.js"></script>
+    <script type="text/javascript">
+      var mapOptions = {
+            center: [<%= lat %>,<%= lon %>],
+            zoom: 15
+         }
+         var map = new L.map('mapid', mapOptions);
+
+         var layer = new L.TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+
+         map.addLayer(layer);
+
+         var marker = L.marker([<%= lat %>, <%= lon %>]);
+         
+         marker.addTo(map);
+      
+    </script>
+
+</body>

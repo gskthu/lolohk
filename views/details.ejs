@@ -1,14 +1,27 @@
 <html><body>
+    <H2>Inventory Details</H2><hr>
+    <p>inventory_ID: <b><%=docs.inventory_ID%></b></p>
+    <p>name: <b><%=docs.name%></b></p>
+    <p>type: <b><%=docs.type%></b></p>
+    <p>quantity: <b><%=docs.quantity%></b></p>
+    <p>photoMimetype: <b><%=docs.photoMimetype%></b></p>
+    <p>street: <b><%=docs.inventory_address.street%></b></p>
+    <p>building: <b><%=docs.inventory_address.building%></b></p>
+    <p>country: <b><%=docs.inventory_address.country%></b></p>
+    <p>zipcode: <b><%=docs.inventory_address.zipcode%></b></p>
+    <p>coord: <b><%=docs.inventory_address.coord%></b></p>
+    <p>manager: <b><%=docs.manager%></b></p>
     
-    <H2>Booking Details</H2><hr>
-    <p>Booking ID: <b><%=docs.bookingid%></b></p>
-    <p>Mobile: <b><%=docs.mobile%></b></p>
+
      
     <% if (docs.photo) { %>
-         <img src="<%=docs.photo%>"><br>
+         <img src="<%=docs.photo%>" height="600"><br>
          <% } %>
      
+         <% if (docs.inventory_address.coord) { %>
+            <a href="/map?lat=<%=s[0]%>&lon=<%=s[1]%>">MAP</a><br><br>
+            <% } %>
     <a href="/edit?_id=<%=docs._id%>">edit</a><br><br>
-    
+    <a href="/delete?_id=<%=docs._id%>">Delete</a><br><br>
     <a href="/">back<a>
     </body></html>

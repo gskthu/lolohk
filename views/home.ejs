@@ -1,13 +1,42 @@
 <html>
 
 <body>
-
-    <H2>Bookings (<%= docs.length %>)</H2>
-    <% for (var doc of docs) { %>  
-        <li>Booking ID: <a href="/details?_id=<%=doc._id%>"><%=doc.bookingid%></a></li>  
-    <% } %>   
+    <h1>HoHongWang s1222817</h1>
+    <h1>Hello! <%=name%> </h1>
+    <a href='/create'>Create Inventory</a>
+    <H2>Inventory (<%= docs.length %>)</H2>
+    <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for names.." title="Type in a name">
 <br>
-<a href='/logout'>Logout</a>
+    <ul id="myUL">
+        <% for (var doc of docs) { %>
+            <li>Inventory: <a href="/details?_id=<%=doc._id%>">
+                    <%=doc.name%>
+                </a></li>
+            <% } %>
+    </ul>
+    <br>
+    <a href='/logout'>Logout</a>
+    <a href='/map'>testMAP</a>
+
+    <script>
+        function myFunction() {
+            var input, filter, ul, li, a, i, txtValue;
+            input = document.getElementById("myInput");
+            filter = input.value.toUpperCase();
+            ul = document.getElementById("myUL");
+            li = ul.getElementsByTagName("li");
+            for (i = 0; i < li.length; i++) {
+                a = li[i].getElementsByTagName("a")[0];
+                txtValue = a.textContent || a.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    li[i].style.display = "";
+                } else {
+                    li[i].style.display = "none";
+                }
+            }
+        }
+        </script>
+        
 </body>
 
 </html>

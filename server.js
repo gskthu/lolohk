@@ -19,11 +19,21 @@ const formidable = require('formidable');
 // for CRUD and check formatt
 const mongoose = require('mongoose');
 const bookingSchema = mongoose.Schema({
-	bookingid: String,
-	mobile: String,
+	inventory_ID: String,
+	name: { type: String,required: true },
+	type: String,
+	quantity: String,
 	photo: String,
+	photoMimetype: String,
+	inventory_address: {
+		street: String,
+		building: String,
+		country: String,
+		zipcode: String,
+		coord: String
+	},
+	manager: { type: String,required: true },
 });
-
 
 
 // store users 
@@ -49,15 +59,19 @@ app.use(express.static('images'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
+//API------------------------------------------------------------------------------------------------------------
+app.get('/api/inventory/name/:name', (req, res) => {
+	var s =req.params.name
+	handle_Name_Api(res,s)
+	
+});
+// Routing------------------------------------------------------------------------------------------------------
 
-// routing------------------------------------------------------------------------------------------------------
 app.get('/', (req, res) => {
-	console.log(req.session);
 	if (!req.session.authenticated) {   // user not logged in!
 		res.redirect('/login');
 	} else {
-		console.log(req.query);
-		handle_Find(res, req.query);// call home.ejs to show booking id and
+		handle_Find(res, req.query, req.session.username);// call home.ejs to show booking id and
 	}
 });
 
@@ -65,7 +79,6 @@ app.get('/details', (req, res) => {
 	if (!req.session.authenticated) {   // user not logged in!
 		res.redirect('/login');
 	} else {
-		console.log(req.query);
 		handle_Details(res, req.query)// call details.ejs to show booking details
 	}
 });
@@ -74,8 +87,53 @@ app.get('/edit', (req, res) => {
 	if (!req.session.authenticated) {   // user not logged in!
 		res.redirect('/login');
 	} else {
-		console.log(req.query);
 		handle_Edit(res, req.query)
+	}
+});
+
+app.get('/delete', (req, res) => {
+	if (!req.session.authenticated) {   // user not logged in!
+		res.redirect('/login');
+	} else {
+		handle_Delete(res, req)
+	}
+});
+
+
+app.get('/create', (req, res) => {
+	if (!req.session.authenticated) {   // user not logged in!
+		res.redirect('/login');
+	} else {
+		res.render('create.ejs', {});
+	}
+});
+
+app.get('/map', (req, res) => {
+
+	if (!req.session.authenticated) {   // user not logged in!
+		res.redirect('/login');
+	} else {
+		var lat = req.query.lat
+		var lon = req.query.lon
+		res.render('map.ejs', {
+			lat,
+			lon
+		});
+	}
+});
+
+
+app.post('/create', (req, res) => {
+	if (!req.session.authenticated) {   // user not logged in!
+		res.redirect('/login');
+	} else {
+		if (req.files != null && req.files.file != null) {
+			var file = req.files.file
+			file.mv('./images/' + file.name);
+			req.body.fileName = req.protocol + '://' + req.get('host') + "/" + file.name
+		}
+		handle_Create(res, req)
+		
 	}
 });
 
@@ -83,7 +141,7 @@ app.post('/update', (req, res) => {
 	if (!req.session.authenticated) {   // user not logged in!
 		res.redirect('/login');
 	} else {
-		if(req.files != null && req.files.file != null){
+		if (req.files != null && req.files.file != null) {
 			var file = req.files.file
 			file.mv('./images/' + file.name);
 			req.body.fileName = "http://localhost:8099/" + file.name
@@ -99,7 +157,9 @@ app.post('/update', (req, res) => {
 
 
 app.get('/login', (req, res) => {
-	res.status(200).render('login', {});
+	
+		res.status(200).render('login', {});///
+	
 });
 
 app.post('/login', (req, res) => {
@@ -114,19 +174,21 @@ app.post('/login', (req, res) => {
 	res.redirect('/');
 });
 
+
+
 app.get('/logout', (req, res) => {
 	req.session = null;   // clear cookie-session
 	res.redirect('/');
 });
 
+
+
+
+
 app.listen(process.env.PORT || 8099);
 
 // --------------------------CRUD------------------------------------------------------------------------------
-
-
-
-
-const handle_Find = (res, criteria) => {
+const handle_Find = (res, criteria, name) => {
 	mongoose.connect(mongourl);
 	let db = mongoose.connection;
 
@@ -136,32 +198,36 @@ const handle_Find = (res, criteria) => {
 		Booking.find(criteria, (err, docs) => {
 			if (err) return console.error(err);
 			res.render('home.ejs', {
-				docs
+				docs,
+				name
 			});
 		})
 	})
 }
 
 
-// const handle_Details = (res, criteria) => {
-// 	const client = new MongoClient(mongourl);
-// 	client.connect((err) => {
-// 		assert.equal(null, err);
-// 		console.log("Connected successfully to server");
-// 		const db = client.db(dbName);
+const handle_Delete = (res, criteria) => {
+	mongoose.connect(mongourl);
+	let db = mongoose.connection;
 
-// 		/* use Document ID for query */
-// 		let DOCID = {};
-// 		DOCID['_id'] = ObjectID(criteria._id)
-// 		findDocument(db, DOCID, (docs) => {  // docs contain 1 document (hopefully)
-// 			client.close();
-// 			console.log("Closed DB connection");
-// 			res.status(200).render('details', {
-// 				docs
-// 			});
-// 		});
-// 	});
-// }
+	db.on('error', console.error.bind(console, 'connection error:'));
+	db.once('open', () => {
+		let DOCID = {};
+		DOCID['_id'] = ObjectID(criteria.query._id)
+		const Booking = mongoose.model('booking', bookingSchema);
+		Booking.findOne(DOCID, (err, docs) => {
+			if (err) return console.error(err);
+			console.log(docs);
+			if (docs.manager != criteria.session.username) {
+				res.status(200).render('deleteError.ejs', {});
+			}else{
+				docs.remove()
+				res.status(200).render('delete.ejs', {});
+			}
+		});
+	})
+}
+
 
 const handle_Details = (res, criteria) => {
 	mongoose.connect(mongourl);
@@ -176,8 +242,10 @@ const handle_Details = (res, criteria) => {
 		const Booking = mongoose.model('booking', bookingSchema);
 		Booking.findOne(DOCID, (err, docs) => {
 			if (err) return console.error(err);
+			const s = docs.inventory_address.coord.split(",")
 			res.status(200).render('details.ejs', {
-				docs
+				docs,
+				s
 			});
 		});
 	});
@@ -185,11 +253,28 @@ const handle_Details = (res, criteria) => {
 
 
 
+const handle_Name_Api = (res, criteria) => {
+	mongoose.connect(mongourl);
+	let db = mongoose.connection;
+	db.on('error', console.error.bind(console, 'connection error:'));
+	db.once('open', () => {
+		/* use Document ID for query */
+		let DOCID = {};
+		DOCID['name'] = criteria
+		const Booking = mongoose.model('booking', bookingSchema);
+		Booking.find(DOCID, (err, docs) => {
+			// var jsonData = JSON.stringify(docs)
+			// res.status(200).render('nameAPI.ejs', {
+			// 	jsonData
+			// });
+			res.json(docs)
+		});
+	});
+}
+
 const handle_Edit = (res, criteria) => {
 	mongoose.connect(mongourl);
-
 	let db = mongoose.connection;
-
 	db.on('error', console.error.bind(console, 'connection error:'));
 	db.once('open', () => {
 		/* use Document ID for query */
@@ -198,10 +283,41 @@ const handle_Edit = (res, criteria) => {
 		const Booking = mongoose.model('booking', bookingSchema);
 		Booking.findOne(DOCID, (err, docs) => {
 			if (err) return console.error(err);
+			const s = docs.inventory_address.coord.split(",")
 			res.status(200).render('edit.ejs', {
-				docs
+				docs,
+				s
 			});
 		});
+	});
+}
+
+const handle_Create = (res, criteria) => {
+	mongoose.connect(mongourl);
+	let db = mongoose.connection;
+	db.on('error', console.error.bind(console, 'connection error:'));
+	db.once('open', () => {
+		/* use Document ID for query */
+		const Booking = mongoose.model('booking', bookingSchema);
+		BookingOne = new Booking({
+			inventory_ID: criteria.body.inventory_ID,
+			name: criteria.body.name,
+			type: criteria.body.type,
+			quantity: criteria.body.quantity,
+			photo: criteria.body.fileName,
+			photoMimetype: criteria.body.photoMimetype,
+			inventory_address: {
+				street: criteria.body.street,
+				building: criteria.body.building,
+				country: criteria.body.country,
+				zipcode: criteria.body.zipcode,
+				coord: criteria.body.latitude+","+criteria.body.longitude
+			},
+			manager: criteria.session.username
+		})
+		BookingOne.save(err => {
+			res.status(200).render('createOK.ejs', {});
+		})
 	});
 }
 
@@ -216,71 +332,39 @@ const handle_Update = (res, criteria) => {
 		DOCID['_id'] = ObjectID(criteria.body._id)
 		const Booking = mongoose.model('booking', bookingSchema);
 		Booking.findOne(DOCID, (err, docs) => {
-			//console.log(docs);
-			docs.bookingid = criteria.body.bookingid;
-			docs.mobile = criteria.body.mobile;
-			if(criteria.body.fileName != null)
-				docs.photo = criteria.body.fileName
-			docs.save(err => {
+			if (err) return console.error(err);
+			if (docs.manager != criteria.session.username) {
+				res.status(200).render('updateError.ejs', {});
+			} else {
+				docs.inventory_ID = criteria.body.inventory_ID;
+				docs.name = criteria.body.name;
+				docs.type = criteria.body.type;
+				docs.quantity = criteria.body.quantity;
+				docs.photoMimetype = criteria.body.photoMimetype;
+				docs.inventory_address.street = criteria.body.street;
+				docs.inventory_address.building = criteria.body.building;
+				docs.inventory_address.country = criteria.body.country;
+				docs.inventory_address.zipcode = criteria.body.zipcode;
+				docs.inventory_address.coord = criteria.body.latitude + "," + criteria.body.longitude;
+
+				if (criteria.body.fileName != null)
+					docs.photo = criteria.body.fileName
+				docs.save(err => {
+					if (err) {
+						res.status(200).render('InputRequired.ejs', {
+							docs
+						});
+					} else {
 						res.status(200).render('update.ejs', {
 							docs
 						});
-					})
-			// const form = new formidable.IncomingForm();
-			// if (files.fileToUpload.size > 0) {
-			// 	form.parse(req, (err, fields, files) => {
-			// 		fs.readFile(files.fileToUpload.path, (err, data) => {
-			// 			assert.equal(err, null);
-			// 			docs.photo = new Buffer.from(data).toString('base64');
-			// 		})
-			// 	})
-			// 	docs.save(err => {
-			// 		res.status(200).render('update.ejs', {
-			// 			docs
-			// 		});
-			// 	})
-			// }else {
-			// 	docs.save(err => {
-			// 		res.status(200).render('update.ejs', {
-			// 			docs
-			// 		});
-			// 	})
-			// }
-			// docs.body.photo=new Buffer.from(data).toString('base64');
-			// docs.body.photo = criteria.photo;
-			
+					}
+				})
+			}
+
 		})
 	})
 }
 
 
 
-// const handle_UpdateAAA = (req, res, criteria) => {
-// 	// Q2
-// 	const form = new formidable.IncomingForm();
-// 	form.parse(req, (err, fields, files) => {
-// 		var DOCID = {};
-// 		DOCID['_id'] = ObjectID(fields._id);
-// 		var updateDoc = {};
-// 		updateDoc['bookingid'] = fields.bookingid;
-// 		updateDoc['mobile'] = fields.mobile;
-// 		if (files.fileToUpload.size > 0) {
-// 			fs.readFile(files.fileToUpload.path, (err, data) => {
-// 				assert.equal(err, null);
-// 				updateDoc['photo'] = new Buffer.from(data).toString('base64');
-// 				updateDocument(DOCID, updateDoc, (results) => {
-// 					res.writeHead(200, { "content-type": "text/html" });
-// 					res.write(`<html><body><p>Updated ${results.result.nModified} document(s)<p><br>`);
-// 					res.end('<a href="/">back</a></body></html>');
-// 				});
-// 			});
-// 		} else {
-// 			updateDocument(DOCID, updateDoc, (results) => {
-// 				res.writeHead(200, { "content-type": "text/html" });
-// 				res.write(`<html><body><p>Updated ${results.result.nModified} document(s)<p><br>`);
-// 				res.end('<a href="/">back</a></body></html>');
-// 			});
-// 		}
-// 	})
-// 	// end of Q2
-// }

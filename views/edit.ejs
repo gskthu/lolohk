@@ -2,14 +2,27 @@
 
 <body>
     <form action="/update" method="POST" enctype="multipart/form-data">
-        Booking ID: <input name="bookingid" value=<%=docs.bookingid%>><br>
-        Mobile: <input name="mobile" value=<%=docs.mobile%> /><br>
+        inventory_ID: <input name="inventory_ID" value=<%=docs.inventory_ID%> /><br>
+        name: <input name="name" value=<%=docs.name%> /><br>
+        type: <input name="type" value=<%=docs.type%> /><br>
+        quantity: <input name="quantity" value=<%=docs.quantity%> /><br>
+        photoMimetype: <input name="photoMimetype" value=<%=docs.photoMimetype%> /><br>
+        street: <input name="street" value=<%=docs.inventory_address.street%> /><br>
+        building: <input name="building" value=<%=docs.inventory_address.building%> /><br>
+        country: <input name="country" value=<%=docs.inventory_address.country%> /><br>
+        zipcode: <input name="zipcode" value=<%=docs.inventory_address.zipcode%> /><br>
+        latitude:: <input name="latitude" value=<%=s[0]%> /><br>
+        longitude:: <input name="longitude" value=<%=s[1]%> /><br>
+        
         <input type="file" name="file"><br>
         <input type="hidden" name="_id" value=<%=docs._id%>>
         <input type="submit" value="update">
-        <img src="<%=docs.photo%>" height="600">
+        <% if (docs.photo) { %>
+            <img src="<%=docs.photo%>" height="600"><br>
+            <% } %>
     </form>
     
+    <a href="/">back<a>
 </body>
 
 </html>
