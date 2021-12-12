@@ -42,7 +42,8 @@ const bookingSchema = mongoose.Schema({
 const users = new Array(
 	{ name: 'developer', password: 'developer' },
 	{ name: 'guest', password: 'guest' },
-	{ name: 'demo', password: '' }
+	{ name: 'demo', password: '' },
+	{ name: 'student', password: '' }
 );
 
 // use ejs in express
